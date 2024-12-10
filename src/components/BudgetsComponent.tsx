@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import Cookies from 'js-cookie';
-import { Badge, Button, Card, Spinner } from 'react-bootstrap'; // Importamos Bootstrap components
+import { Badge, Button, Card, Spinner, Form } from 'react-bootstrap'; // Importamos Bootstrap components
 
 interface Category {
   id: string;
@@ -23,19 +23,28 @@ interface Budget {
 const Budgets: React.FC = () => {
   const [budgets, setBudgets] = useState<Budget[]>([])
   const [loading, setLoading] = useState<boolean>(true); // Estado para el loading
-  const [error, setError] = useState<string | null>(null); 
+  const [error, setError] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [monthFilter, setMonthFilter] = useState<number | "">("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
 
   const navigate = useNavigate();
-  
+
   const retrieveUserBudgets = async () => {
-    const token = Cookies.get('token')
+    const token = Cookies.get('token');
     try {
       setLoading(true);
+      const params: any = {}; // Almacenaremos los filtros aquí
+      if (categoryFilter) params.category = categoryFilter;
+      if (monthFilter !== "") params.month = monthFilter;
+      if (statusFilter) params.status = statusFilter;
+
       const response = await axios.get(
         "https://raspy-jacquenette-testingbruhhh-6daeb85c.koyeb.app/api/v1/budgets", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          params, // Pasamos los filtros en los parámetros de la solicitud
         }
       );
       setBudgets(response.data); // Guardar los datos en el estado
@@ -44,11 +53,11 @@ const Budgets: React.FC = () => {
     } finally {
       setLoading(false); // Finalizar loading
     }
-  }
+  };
 
   useEffect(() => {
     retrieveUserBudgets();
-  }, []);
+  }, [categoryFilter, monthFilter, statusFilter]); // Recargar presupuestos cada vez que cambian los filtros
 
   if (loading) {
     return (
@@ -73,6 +82,53 @@ const Budgets: React.FC = () => {
       <Button variant="primary" style={styles.createNewBudgetBtn} onClick={() => navigate('/create-budget')}>
         Create New Budget
       </Button>
+      <Form style={styles.filterForm}>
+        <Form.Group controlId="categoryFilter">
+          <Form.Label>Category</Form.Label>
+          <Form.Control
+            as="select"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="">All Categories</option>
+            {/* Aquí puedes agregar las categorías disponibles si las tienes */}
+            <option value="Food">Food</option>
+            <option value="Travel">Travel</option>
+            <option value="Entertainment">Entertainment</option>
+          </Form.Control>
+        </Form.Group>
+
+        <Form.Group controlId="monthFilter">
+          <Form.Label>Month</Form.Label>
+          <Form.Control
+            as="select"
+            value={monthFilter}
+            onChange={(e) => setMonthFilter(Number(e.target.value))}
+          >
+            <option value="">All Months</option>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i} value={i}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
+            ))}
+          </Form.Control>
+        </Form.Group>
+
+        <Form.Group controlId="statusFilter">
+          <Form.Label>Status</Form.Label>
+          <Form.Control
+            as="select"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+          </Form.Control>
+        </Form.Group>
+
+        <Button variant="secondary" style={{marginTop:"10px"}} onClick={() => retrieveUserBudgets()}>Apply Filters</Button>
+      </Form>
+
       <div className="row">
         {budgets.map((budget) => (
           <div key={budget.id} className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
@@ -100,8 +156,8 @@ const Budgets: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     padding: "20px",
-    backgroundColor: "#f9f9f9", // Fondo gris claro
-    minHeight: "100vh", 
+    backgroundColor: "#f9f9f9", 
+    minHeight: "100vh",
   },
   containerError: {
     display: 'flex',
@@ -117,7 +173,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   budgetCard: {
     borderRadius: "8px",
     boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-    border: "none", 
+    border: "none",
     backgroundColor: "#ffffff",
   },
   loader: {
@@ -130,6 +186,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: "center",
     fontSize: "18px",
     color: "gray",
+  },
+  filterForm: {
+    marginBottom: "30px",
+    backgroundColor: "#f7f9fc",
+    padding: "20px",
+    borderRadius: "8px",
   },
 };
 

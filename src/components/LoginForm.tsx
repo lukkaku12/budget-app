@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -20,10 +21,32 @@ export const LoginForm = () => {
     setFocusedField(null);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Login Data:', form);
-    navigate('/home');
+  
+    try {
+      // Enviar solicitud de login con axios
+      const response = await axios.post('https://raspy-jacquenette-testingbruhhh-6daeb85c.koyeb.app/api/v1/auth/login', form);
+  
+      // Si la respuesta es exitosa
+      console.log('Login Success:', response.data);
+  
+  
+      // Crear una cookie
+      document.cookie = `token=${response.data.accessToken}; path=/; expires=${new Date(Date.now() + 86400000).toUTCString()}; secure; SameSite=Strict`;
+      // Redirige al usuario a la página principal
+      navigate('/home');
+    } catch (error: any) {
+      // Manejo de errores
+      if (error.response) {
+        // Error del servidor con mensaje
+        alert(`Error: ${error.response.data.message || 'Something went wrong'}`);
+      } else {
+        // Otro tipo de error
+        console.error('Error during login:', error);
+        alert('Login failed. Please try again.');
+      }
+    }
   };
 
   return (

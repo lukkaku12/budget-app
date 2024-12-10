@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
+import axios from 'axios';
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ const RegisterForm = () => {
     password: '',
   });
 
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -18,18 +20,31 @@ const RegisterForm = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Form data submitted:', formData);
-    // Aquí puedes enviar los datos al backend
-    navigate('/login');
+    try {
+      // Realiza la solicitud POST al backend
+      const response = await axios.post('https://raspy-jacquenette-testingbruhhh-6daeb85c.koyeb.app/api/v1/auth/register', formData);
+      console.log('Registro exitoso:', response.data);
+  
+      // Crear una cookie
+      document.cookie = `token=${response.data.accessToken}; path=/; expires=${new Date(Date.now() + 86400000).toUTCString()}; secure; SameSite=Strict`;
+      // Redirige al usuario a la página de inicio de sesión
+      navigate('/home');
+    } catch (error: any) {
+      // Manejo de errores
+      console.error('Error en el registro:', error.response?.data || error.message);
+      setError(error.response?.data?.message || 'An error occurred during registration');
+    }
   };
 
   return (
     <div style={styles.container}>
       <form onSubmit={handleSubmit} style={styles.form}>
         <h2 style={styles.title}>Register</h2>
-        
+
+        {error && <p style={styles.error}>{error}</p>}
+
         <div style={styles.inputGroup}>
           <label htmlFor="name" style={styles.label}>Name</label>
           <input
@@ -124,10 +139,6 @@ const styles = {
     transition: 'border-color 0.3s, box-shadow 0.3s',
     outline: 'none',
   },
-  inputFocus: {
-    borderColor: '#007BFF',
-    boxShadow: '0 0 5px rgba(0, 123, 255, 0.5)',
-  },
   button: {
     width: '100%',
     padding: '10px',
@@ -139,8 +150,11 @@ const styles = {
     cursor: 'pointer',
     transition: 'background-color 0.3s',
   },
-  buttonHover: {
-    backgroundColor: '#0056b3',
+  error: {
+    color: 'red',
+    fontSize: '14px',
+    marginBottom: '10px',
+    textAlign: 'center' as 'center',
   },
 };
 

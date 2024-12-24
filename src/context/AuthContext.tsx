@@ -1,30 +1,18 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
-interface AuthContextProps {
+interface AuthContextType {
   isAuthenticated: boolean;
-  login: () => void;
-  logout: () => void;
+  setIsAuthenticated: (value: boolean) => void;
 }
 
-const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const login = () => {
-    setIsAuthenticated(true);
-    // Aquí puedes agregar lógica adicional como guardar un token
-    console.log('User logged in');
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    // Aquí puedes limpiar datos como tokens de autenticación
-    console.log('User logged out');
-  };
+  const [user] = useState(isAuthenticated ? { id: 1 } : null);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

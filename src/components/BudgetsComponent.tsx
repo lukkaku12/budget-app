@@ -1,8 +1,8 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import Cookies from 'js-cookie';
-import { Badge, Button, Card, Spinner, Form } from 'react-bootstrap'; // Importamos Bootstrap components
+import Cookies from "js-cookie";
+import { Badge, Button, Card, Spinner, Form, Container, Row, Col, Alert } from "react-bootstrap";
 
 interface Category {
   id: string;
@@ -14,15 +14,15 @@ interface Budget {
   id: string;
   name: string;
   amount: number;
-  start_date: string; // Puede ser tipo Date si deseas trabajar con objetos Date
-  end_date: string;   // Igualmente, puedes usar Date si lo prefieres
+  start_date: string;
+  end_date: string;
   status: string;
   category: Category;
 }
 
 const Budgets: React.FC = () => {
-  const [budgets, setBudgets] = useState<Budget[]>([])
-  const [loading, setLoading] = useState<boolean>(true); // Estado para el loading
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [monthFilter, setMonthFilter] = useState<number | "">("");
@@ -31,168 +31,155 @@ const Budgets: React.FC = () => {
   const navigate = useNavigate();
 
   const retrieveUserBudgets = async () => {
-    const token = Cookies.get('token');
+    const token = Cookies.get("token");
     try {
       setLoading(true);
-      const params: any = {}; // Almacenaremos los filtros aquí
+      const params: any = {};
       if (categoryFilter) params.category = categoryFilter;
       if (monthFilter !== "") params.month = monthFilter;
       if (statusFilter) params.status = statusFilter;
 
       const response = await axios.get(
-        "https://raspy-jacquenette-testingbruhhh-6daeb85c.koyeb.app/api/v1/budgets", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          params, // Pasamos los filtros en los parámetros de la solicitud
+        "https://raspy-jacquenette-testingbruhhh-6daeb85c.koyeb.app/api/v1/budgets",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params,
         }
       );
-      setBudgets(response.data); // Guardar los datos en el estado
+      setBudgets(response.data);
     } catch (err) {
-      setError("No hay presupuestos para cargar...");
+      setError("No budgets found...");
     } finally {
-      setLoading(false); // Finalizar loading
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     retrieveUserBudgets();
-  }, [categoryFilter, monthFilter, statusFilter]); // Recargar presupuestos cada vez que cambian los filtros
+  }, [categoryFilter, monthFilter, statusFilter]);
 
   if (loading) {
     return (
-      <div style={styles.loader}>
+      <Container className="text-center py-5">
         <Spinner animation="border" role="status" />
-        <span style={{ marginLeft: "15px" }}>Cargando presupuestos...</span>
-      </div>
+        <p className="mt-3">Loading budgets...</p>
+      </Container>
     );
   }
 
   if (error) {
     return (
-      <div style={styles.containerError} onClick={() => navigate('/create-budget')}>
-        <Button variant="success" style={styles.createNewBudgetBtn}>Create new Budget</Button>
-        <div style={styles.error}>{error}</div>
-      </div>
+      <Container className="text-center py-5">
+        <Alert variant="danger">{error}</Alert>
+        <Button variant="success" onClick={() => navigate("/create-budget")}>
+          Create New Budget
+        </Button>
+      </Container>
     );
   }
 
   return (
-    <div style={styles.container}>
-      <Button variant="primary" style={styles.createNewBudgetBtn} onClick={() => navigate('/create-budget')}>
-        Create New Budget
-      </Button>
-      <Form style={styles.filterForm}>
-        <Form.Group controlId="categoryFilter">
-          <Form.Label>Category</Form.Label>
-          <Form.Control
-            as="select"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          >
-            <option value="">All Categories</option>
-            {/* Aquí puedes agregar las categorías disponibles si las tienes */}
-            <option value="Food">Food</option>
-            <option value="Travel">Travel</option>
-            <option value="Entertainment">Entertainment</option>
-          </Form.Control>
-        </Form.Group>
+    <Container className="py-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>Budgets</h2>
+        <Button variant="primary" onClick={() => navigate("/create-budget")}>
+          Create New Budget
+        </Button>
+      </div>
 
-        <Form.Group controlId="monthFilter">
-          <Form.Label>Month</Form.Label>
-          <Form.Control
-            as="select"
-            value={monthFilter}
-            onChange={(e) => setMonthFilter(Number(e.target.value))}
-          >
-            <option value="">All Months</option>
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i} value={i}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
-            ))}
-          </Form.Control>
-        </Form.Group>
+      {/* Filter Form */}
+      <Form className="bg-light p-3 rounded mb-4">
+        <Row className="gy-3">
+          <Col md={4}>
+            <Form.Group controlId="categoryFilter">
+              <Form.Label>Category</Form.Label>
+              <Form.Select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
+                <option value="">All Categories</option>
+                <option value="Food">Food</option>
+                <option value="Travel">Travel</option>
+                <option value="Entertainment">Entertainment</option>
+              </Form.Select>
+            </Form.Group>
+          </Col>
 
-        <Form.Group controlId="statusFilter">
-          <Form.Label>Status</Form.Label>
-          <Form.Control
-            as="select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-          </Form.Control>
-        </Form.Group>
+          <Col md={4}>
+            <Form.Group controlId="monthFilter">
+              <Form.Label>Month</Form.Label>
+              <Form.Select
+                value={monthFilter === "" ? "" : monthFilter}  // Maneja correctamente el valor ""
+                onChange={(e) => setMonthFilter(e.target.value === "" ? "" : Number(e.target.value))}  // Maneja correctamente el valor ""
+              >
+                <option value="">All Months</option>
+                {Array.from({ length: 12 }, (_, i) => (
+                  <option key={i} value={i}>
+                    {new Date(0, i).toLocaleString("en", { month: "long" })}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
 
-        <Button variant="secondary" style={{marginTop:"10px"}} onClick={() => retrieveUserBudgets()}>Apply Filters</Button>
+          <Col md={4}>
+            <Form.Group controlId="statusFilter">
+              <Form.Label>Status</Form.Label>
+              <Form.Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+              </Form.Select>
+            </Form.Group>
+          </Col>
+        </Row>
+
+        <div className="mt-3 text-end">
+          <Button variant="secondary" onClick={() => retrieveUserBudgets()}>
+            Apply Filters
+          </Button>
+        </div>
       </Form>
 
-      <div className="row">
+      {/* Budgets Grid */}
+      <Row className="gy-4">
         {budgets.map((budget) => (
-          <div key={budget.id} className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
-            <Card style={styles.budgetCard}>
-              <Card.Header as="h5" style={styles.cardHeader}>
-                {budget.name}
-              </Card.Header>
+          <Col key={budget.id} xs={12} sm={6} md={4} lg={3}>
+            <Card
+              className="h-100"
+              onClick={() => navigate(`/budgets/${budget.id}`, { state: { budgetAmount: budget.amount } })}
+              style={{ cursor: "pointer" }} // Añade estilo de puntero para que se vea clickeable
+            >
+              <Card.Header className="bg-primary text-white">{budget.name}</Card.Header>
               <Card.Body>
-                <p><strong>Amount:</strong> ${budget.amount.toFixed(2)}</p>
-                <p><strong>Start Date:</strong> {new Date(budget.start_date).toLocaleDateString()}</p>
-                <p><strong>End Date:</strong> {new Date(budget.end_date).toLocaleDateString()}</p>
-                <p><strong>Status:</strong> {budget.status}</p>
+                <p>
+                  <strong>Amount:</strong> ${budget.amount.toFixed(2)}
+                </p>
+                <p>
+                  <strong>Start Date:</strong>{" "}
+                  {new Date(budget.start_date).toLocaleDateString()}
+                </p>
+                <p>
+                  <strong>End Date:</strong>{" "}
+                  {new Date(budget.end_date).toLocaleDateString()}
+                </p>
+                <p>
+                  <strong>Status:</strong> {budget.status}
+                </p>
               </Card.Body>
-              <Card.Footer className="text-muted">
+              <Card.Footer>
                 <Badge bg="info">Category: {budget.category.name}</Badge>
               </Card.Footer>
             </Card>
-          </div>
+          </Col>
         ))}
-      </div>
-    </div>
+      </Row>
+    </Container>
   );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    padding: "20px",
-    backgroundColor: "#f9f9f9", 
-    minHeight: "100vh",
-  },
-  containerError: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
-    backgroundColor: '#f7f9fc',
-  },
-  createNewBudgetBtn: {
-    marginBottom: "20px",
-  },
-  budgetCard: {
-    borderRadius: "8px",
-    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-    border: "none",
-    backgroundColor: "#ffffff",
-  },
-  loader: {
-    textAlign: "center",
-    fontSize: "24px",
-    color: "#666",
-    paddingTop: "50px",
-  },
-  error: {
-    textAlign: "center",
-    fontSize: "18px",
-    color: "gray",
-  },
-  filterForm: {
-    marginBottom: "30px",
-    backgroundColor: "#f7f9fc",
-    padding: "20px",
-    borderRadius: "8px",
-  },
 };
 
 export default Budgets;

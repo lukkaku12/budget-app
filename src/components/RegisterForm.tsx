@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +13,7 @@ const RegisterForm = () => {
 
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const auth = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -23,16 +26,12 @@ const RegisterForm = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      // Realiza la solicitud POST al backend
       const response = await axios.post('https://raspy-jacquenette-testingbruhhh-6daeb85c.koyeb.app/api/v1/auth/register', formData);
       console.log('Registro exitoso:', response.data);
-  
-      // Crear una cookie
+      auth.setIsAuthenticated(true);
       document.cookie = `token=${response.data.accessToken}; path=/; expires=${new Date(Date.now() + 86400000).toUTCString()}; secure; SameSite=Strict`;
-      // Redirige al usuario a la página de inicio de sesión
-      navigate('/home');
+      navigate('/home', { replace: true });
     } catch (error: any) {
-      // Manejo de errores
       console.error('Error en el registro:', error.response?.data || error.message);
       setError(error.response?.data?.message || 'An error occurred during registration');
     }
@@ -90,6 +89,15 @@ const RegisterForm = () => {
         <button type="submit" style={styles.button}>
           Register
         </button>
+
+        <div style={styles.linkContainer}>
+          <p>
+            Already have an account?{' '}
+            <Link to="/login" style={styles.link}>
+              Login
+            </Link>
+          </p>
+        </div>
       </form>
     </div>
   );
@@ -155,6 +163,14 @@ const styles = {
     fontSize: '14px',
     marginBottom: '10px',
     textAlign: 'center' as 'center',
+  },
+  linkContainer: {
+    marginTop: '20px',
+    textAlign: 'center' as 'center',
+  },
+  link: {
+    color: '#007BFF',
+    textDecoration: 'none',
   },
 };
 

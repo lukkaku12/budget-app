@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, Button, Row, Col, Container } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 import Cookies from 'js-cookie';

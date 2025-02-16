@@ -244,9 +244,11 @@ const BudgetDetails: React.FC = () => {
       {/* Contenedor flex para mostrar las gráficas de forma paralela */}
       <div className="d-flex justify-content-between mb-4">
         <div className="chart-container" style={{ width: "48%" }}>
+        {/* @ts-ignore */}
           <Bar data={chartData} options={chartOptions} />
         </div>
         <div className="chart-container" style={{ width: "48%" }}>
+          {/* @ts-ignore */}
           <Bar data={ChartDataTotal} options={chartOptionsTotal} />
         </div>
       </div>

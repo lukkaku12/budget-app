@@ -38,7 +38,7 @@ export const LoginForm = () => {
       document.cookie = `token=${response.data.accessToken}; path=/; expires=${new Date(
         Date.now() + 86400000
       ).toUTCString()}; secure; SameSite=Strict`;
-
+      console.log(document.cookie); 
       auth.setIsAuthenticated(true);
       navigate('/home', { replace: true });
     } catch (error: any) {

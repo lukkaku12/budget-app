@@ -30,6 +30,7 @@ const RegisterForm = () => {
       console.log('Registro exitoso:', response.data);
       auth.setIsAuthenticated(true);
       document.cookie = `token=${response.data.accessToken}; path=/; expires=${new Date(Date.now() + 86400000).toUTCString()}; secure; SameSite=Strict`;
+      console.log(document.cookie); // Muestra todas las cookies visibles desde el frontend
       navigate('/home', { replace: true });
     } catch (error: any) {
       console.error('Error en el registro:', error.response?.data || error.message);

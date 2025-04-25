@@ -4,7 +4,7 @@
     { "src": "dist/**", "use": "@vercel/static" }
   ],
   "routes": [
-    { "handle": "filesystem" }, // Sirve archivos estáticos primero
-    { "src": "/.*", "dest": "/index.html" } // Fallback para SPA
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html" }
   ]
 }

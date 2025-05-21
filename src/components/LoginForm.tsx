@@ -2,10 +2,11 @@ import axios from 'axios';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
-export const LoginForm = () => {
+const LoginForm = () => {
   const [form, setForm] = useState({ email: '', password: '' });
-  const [focusedField, setFocusedField] = useState<string | null>(null); // Estado para manejar el foco
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const auth = useAuth();
 
@@ -14,106 +15,146 @@ export const LoginForm = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFocus = (fieldName: string) => {
-    setFocusedField(fieldName);
-  };
-
-  const handleBlur = () => {
-    setFocusedField(null);
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
-      // Enviar solicitud de login con axios
       const response = await axios.post(
         'https://raspy-jacquenette-testingbruhhh-6daeb85c.koyeb.app/api/v1/auth/login',
         form
       );
 
-      console.log('Login Success:', response.data);
-
-      // Crear una cookie segura para el token
       document.cookie = `token=${response.data.accessToken}; path=/; expires=${new Date(
         Date.now() + 86400000
       ).toUTCString()}; secure; SameSite=Strict`;
-      console.log(document.cookie); 
+
       auth.setIsAuthenticated(true);
       navigate('/home', { replace: true });
     } catch (error: any) {
-      if (error.response) {
-        // Error del servidor con mensaje
-        alert(`Error: ${error.response.data.message || 'Something went wrong'}`);
-      } else {
-        console.error('Error during login:', error);
-        alert('Login failed. Please try again.');
-      }
+      console.error('Login error:', error.response?.data || error.message);
+      setError(error.response?.data?.message || 'Login failed. Please try again.');
     }
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center vh-100">
-      <div className="row justify-content-center w-100">
-        <div className="col-md-6 col-lg-4">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h3 className="card-title text-center mb-4">Login</h3>
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label htmlFor="email" className="form-label">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    className={`form-control ${
-                      focusedField === 'email' ? 'border-primary' : ''
-                    }`}
-                    id="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    value={form.email}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('email')}
-                    onBlur={handleBlur}
-                    required
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="password" className="form-label">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    className={`form-control ${
-                      focusedField === 'password' ? 'border-primary' : ''
-                    }`}
-                    id="password"
-                    name="password"
-                    placeholder="Enter your password"
-                    value={form.password}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('password')}
-                    onBlur={handleBlur}
-                    required
-                  />
-                </div>
-                <button type="submit" className="btn btn-primary w-100">
-                  Login
-                </button>
-              </form>
-              <div className="text-center mt-3">
-                <p>
-                  Don't have an account?{' '}
-                  <a href="/register" className="text-primary">
-                    Register
-                  </a>
-                </p>
-              </div>
-            </div>
-          </div>
+    <div style={styles.container}>
+      <form onSubmit={handleSubmit} style={styles.form}>
+        <h2 style={styles.title}>Login</h2>
+
+        {error && <p style={styles.error}>{error}</p>}
+
+        <div style={styles.inputGroup}>
+          <label htmlFor="email" style={styles.label}>Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="Enter your email"
+            style={styles.input}
+            required
+          />
         </div>
-      </div>
+
+        <div style={styles.inputGroup}>
+          <label htmlFor="password" style={styles.label}>Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Enter your password"
+            style={styles.input}
+            required
+          />
+        </div>
+
+        <button type="submit" style={styles.button}>
+          Login
+        </button>
+
+        <div style={styles.linkContainer}>
+          <p>
+            Don't have an account?{' '}
+            <Link to="/register" style={styles.link}>Register</Link>
+          </p>
+        </div>
+      </form>
     </div>
   );
 };
+
+const styles = {
+  container: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    backgroundColor: '#f7f9fc',
+    padding: '20px',
+  },
+  form: {
+    backgroundColor: '#ffffff',
+    padding: '30px',
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    width: '100%',
+    maxWidth: '400px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+  },
+  title: {
+    marginBottom: '20px',
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center' as const,
+  },
+  inputGroup: {
+    marginBottom: '20px',
+  },
+  label: {
+    display: 'block',
+    marginBottom: '8px',
+    fontSize: '14px',
+    color: '#555',
+  },
+  input: {
+    width: '100%',
+    padding: '10px',
+    fontSize: '16px',
+    borderRadius: '5px',
+    border: '1px solid #ccc',
+    transition: 'border-color 0.3s, box-shadow 0.3s',
+    outline: 'none',
+  },
+  button: {
+    width: '100%',
+    padding: '10px',
+    borderRadius: '5px',
+    border: 'none',
+    backgroundColor: '#007BFF',
+    color: '#fff',
+    fontSize: '16px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s',
+  },
+  error: {
+    color: 'red',
+    fontSize: '14px',
+    marginBottom: '10px',
+    textAlign: 'center' as const,
+  },
+  linkContainer: {
+    marginTop: '20px',
+    textAlign: 'center' as const,
+  },
+  link: {
+    color: '#007BFF',
+    textDecoration: 'none',
+  },
+};
+
+export default LoginForm;

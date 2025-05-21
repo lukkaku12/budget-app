@@ -15,7 +15,7 @@ function App() {
       router.navigate("/home");
     } else {
       auth.setIsAuthenticated(false);
-      router.navigate("/login"); // ✅ Usa router.navigate()
+      router.navigate("/welcome"); // ✅ Usa router.navigate()
     }
   }, []);
 

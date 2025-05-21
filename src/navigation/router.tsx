@@ -4,12 +4,14 @@ import Register from "../pages/Register";
 import CreateBudget from "../pages/CreateBudget";
 import PrivateLayout from "../layout/PrivateLayout";
 import BudgetsView from "../pages/BudgetsView";
-import BudgetDetails from "../pages/BudgetDetails.tsx"; // Importa la nueva página de detalles
+import BudgetDetails from "../pages/BudgetDetails.tsx";
 import CreateTransaction from "../pages/CreateTransaction.tsx";
 import TransactionEditor from "../pages/TransactionEditor.tsx";
 import MyProfile from "../pages/MyProfile.tsx";
+import LandingPage from "../pages/LandingPage.tsx";
 
 export const router = createBrowserRouter([
+  { path: "/welcome", element: <LandingPage /> },
   {
     path: "/",
     element: <PrivateLayout />,
@@ -18,7 +20,10 @@ export const router = createBrowserRouter([
       { path: "create-budget", element: <CreateBudget /> },
       { path: "budgets/:id", element: <BudgetDetails /> },
       { path: "budgets/:id/create-transaction", element: <CreateTransaction /> },
-      { path: "budget/:idBudget/edit-transaction/:idTransaction", element:<TransactionEditor /> },
+      {
+        path: "budget/:idBudget/edit-transaction/:idTransaction",
+        element: <TransactionEditor />,
+      },
       { path: "profile", element: <MyProfile /> },
     ],
   },

@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import {
-  Container,
-  Spinner,
-  Alert,
-  Form,
-  Button,
-  Table,
-} from "react-bootstrap";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { Bar } from "react-chartjs-2";
@@ -85,7 +77,7 @@ const BudgetDetails: React.FC = () => {
         }
       );
       setTransactions(response.data);
-    } catch (err) {
+    } catch {
       setError("Failed to fetch transactions.");
     } finally {
       setLoading(false);
@@ -136,8 +128,8 @@ const BudgetDetails: React.FC = () => {
       {
         label: "Transaction Amount",
         data: transactions.map((t) => t.amount), // Monto de cada transacción
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderColor: "rgba(75, 192, 192, 1)",
+        backgroundColor: "rgba(67, 97, 238, 0.24)",
+        borderColor: "rgba(67, 97, 238, 1)",
         borderWidth: 1,
       },
     ],
@@ -149,8 +141,8 @@ const BudgetDetails: React.FC = () => {
       {
         label: "Total Amount",
         data: [transactions.reduce((total, t) => total + t.amount, 0)], // Suma de todos los montos
-        backgroundColor: "rgba(255, 99, 132, 0.2)",
-        borderColor: "rgba(255, 99, 132, 1)",
+        backgroundColor: "rgba(14, 165, 164, 0.24)",
+        borderColor: "rgba(14, 165, 164, 1)",
         borderWidth: 1,
       },
     ],
@@ -168,7 +160,7 @@ const BudgetDetails: React.FC = () => {
         max: Math.floor(budgetAmount),
       },
     },
-  };
+  } as const;
 
   const chartOptions = {
     responsive: true,
@@ -182,7 +174,7 @@ const BudgetDetails: React.FC = () => {
         max: Math.floor(budgetAmount),
       },
     },
-  };
+  } as const;
 
   // Función para eliminar una transacción
   const handleDeleteTransaction = async (transactionId: string) => {
@@ -197,161 +189,77 @@ const BudgetDetails: React.FC = () => {
       // Actualizar el estado eliminando la transacción del arreglo
       setTransactions((prev) => prev.filter((t) => t.id !== transactionId));
       alert("Transaction deleted successfully");
-    } catch (err) {
+    } catch {
       alert("Failed to delete the transaction");
     }
   };
 
+  const totalSpent = transactions.reduce((total, t) => total + t.amount, 0);
+  const remaining = Number(budgetAmount || 0) - totalSpent;
+
   if (loading) {
-    return (
-      <Container className="text-center py-5">
-        <Spinner animation="border" role="status" />
-        <p className="mt-3">Loading transactions...</p>
-      </Container>
-    );
+    return <div className="loading-state"><div><div className="spinner-dot" /><h2>Loading transactions</h2><p className="text-muted">Building your budget detail view...</p></div></div>;
   }
 
   if (error) {
-    return (
-      <Container className="text-center py-5">
-        <Alert variant="danger">{error}</Alert>
-      </Container>
-    );
+    return <section className="empty-state panel"><div><h2>Something went wrong</h2><p className="text-muted">{error}</p><button className="pp-btn pp-btn-secondary" onClick={() => navigate("/home")}>Back to budgets</button></div></section>;
   }
 
   return (
-    <Container className="py-5">
-      <h2>Transactions</h2>
+    <div>
+      <header className="topbar">
+        <div>
+          <h1>Transactions</h1>
+          <p>Inspect spending, apply targeted filters, and manage records for this budget.</p>
+        </div>
+        <div className="action-row">
+          <button className="pp-btn pp-btn-secondary" onClick={() => navigate("/home")}>← Budgets</button>
+          <button className="pp-btn pp-btn-primary" onClick={() => navigate(`/budgets/${id}/create-transaction`)}>＋ Add transaction</button>
+        </div>
+      </header>
 
-      {/* Botón para volver a Budgets */}
-      <Button
-        variant="secondary"
-        className="mb-3"
-        onClick={() => navigate("/home")}
-      >
-        Back to Budgets
-      </Button>
+      <section className="stat-grid" aria-label="Transaction summary">
+        <div className="stat-card"><span>Total spent</span><strong>${totalSpent.toFixed(2)}</strong></div>
+        <div className="stat-card"><span>Budget amount</span><strong>${Number(budgetAmount || 0).toFixed(2)}</strong></div>
+        <div className="stat-card"><span>Remaining</span><strong>${remaining.toFixed(2)}</strong></div>
+      </section>
 
-      {/* Botón para añadir transacciones */}
-      <Button
-        variant="success"
-        className="mb-4 ms-3"
-        onClick={() => navigate(`/budgets/${id}/create-transaction`)}
-      >
-        Add Transaction
-      </Button>
-
-      {/* Contenedor flex para mostrar las gráficas de forma paralela */}
-      <div className="d-flex justify-content-between mb-4">
-        <div className="chart-container" style={{ width: "48%" }}>
-        {/* @ts-ignore */}
+      <section className="chart-grid">
+        <div className="chart-panel">
+          <div className="panel-header"><h2 className="panel-title">Transaction rhythm</h2></div>
           <Bar data={chartData} options={chartOptions} />
         </div>
-        <div className="chart-container" style={{ width: "48%" }}>
-          {/* @ts-ignore */}
+        <div className="chart-panel">
+          <div className="panel-header"><h2 className="panel-title">Total vs plan</h2></div>
           <Bar data={ChartDataTotal} options={chartOptionsTotal} />
         </div>
-      </div>
+      </section>
 
-      {/* Filtros */}
-      <Form className="mb-4">
-        <Form.Group className="mb-2">
-          <Form.Label>Minimum Day</Form.Label>
-          <Form.Control
-            type="number"
-            name="min_day"
-            value={filters.min_day}
-            onChange={handleInputChange}
-            placeholder="1"
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-2">
-          <Form.Label>Maximum Day</Form.Label>
-          <Form.Control
-            type="number"
-            name="max_day"
-            value={filters.max_day}
-            onChange={handleInputChange}
-            placeholder="31"
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-2">
-          <Form.Label>Minimum Amount</Form.Label>
-          <Form.Control
-            type="number"
-            name="min_amount"
-            value={filters.min_amount}
-            onChange={handleInputChange}
-            placeholder="0.01"
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-2">
-          <Form.Label>Maximum Amount</Form.Label>
-          <Form.Control
-            type="number"
-            name="max_amount"
-            value={filters.max_amount}
-            onChange={handleInputChange}
-            placeholder="1000"
-          />
-        </Form.Group>
-
-        <Button variant="primary" className="me-2" onClick={handleApplyFilters}>
-          Apply Filters
-        </Button>
-        <Button variant="secondary" onClick={handleResetFilters}>
-          Reset Filters
-        </Button>
-      </Form>
+      <section className="panel mb-4">
+        <div className="panel-header"><h2 className="panel-title">Filter transaction records</h2></div>
+        <div className="filter-grid">
+          <div className="form-field mb-0"><label htmlFor="min_day">Minimum day</label><input className="pp-input" id="min_day" type="number" name="min_day" value={filters.min_day} onChange={handleInputChange} placeholder="1" /></div>
+          <div className="form-field mb-0"><label htmlFor="max_day">Maximum day</label><input className="pp-input" id="max_day" type="number" name="max_day" value={filters.max_day} onChange={handleInputChange} placeholder="31" /></div>
+          <div className="form-field mb-0"><label htmlFor="min_amount">Minimum amount</label><input className="pp-input" id="min_amount" type="number" name="min_amount" value={filters.min_amount} onChange={handleInputChange} placeholder="0.01" /></div>
+          <div className="form-field mb-0"><label htmlFor="max_amount">Maximum amount</label><input className="pp-input" id="max_amount" type="number" name="max_amount" value={filters.max_amount} onChange={handleInputChange} placeholder="1000" /></div>
+        </div>
+        <div className="action-row mt-3"><button className="pp-btn pp-btn-primary" onClick={handleApplyFilters}>Apply filters</button><button className="pp-btn pp-btn-ghost" onClick={handleResetFilters}>Reset filters</button></div>
+      </section>
 
       {transactions.length === 0 ? (
-        <p>No transactions found.</p>
+        <section className="empty-state panel"><div><h2>No transactions found</h2><p className="text-muted">Add the first transaction to start visualizing this budget.</p><button className="pp-btn pp-btn-primary" onClick={() => navigate(`/budgets/${id}/create-transaction`)}>Add transaction</button></div></section>
       ) : (
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Description</th>
-              <th>Amount</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map((transaction) => (
-              <tr key={transaction.id}>
-                <td>{transaction.id}</td>
-                <td>{transaction.description}</td>
-                <td>${transaction.amount.toFixed(2)}</td>
-                <td>{new Date(transaction.date).toLocaleDateString()}</td>
-                <td>
-                  <Button
-                    variant="danger"
-                    onClick={() => handleDeleteTransaction(transaction.id)}
-                  >
-                    Delete
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onClick={() =>
-                      navigate(
-                        `/budget/${id}/edit-transaction/${transaction.id}`
-                      )
-                    } // Redirige a la página de edición
-                    className="ms-2"
-                  >
-                    Edit
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+        <section className="transaction-list">
+          {transactions.map((transaction) => (
+            <article className="transaction-row" key={transaction.id}>
+              <div><strong>{transaction.description}</strong><p>ID {transaction.id} · {new Date(transaction.date).toLocaleDateString()}</p></div>
+              <div className="amount-positive">${transaction.amount.toFixed(2)}</div>
+              <div className="action-row"><button className="pp-btn pp-btn-danger pp-btn-sm" onClick={() => handleDeleteTransaction(transaction.id)}>Delete</button><button className="pp-btn pp-btn-secondary pp-btn-sm" onClick={() => navigate(`/budget/${id}/edit-transaction/${transaction.id}`)}>Edit</button></div>
+            </article>
+          ))}
+        </section>
       )}
-    </Container>
+    </div>
   );
 };
 

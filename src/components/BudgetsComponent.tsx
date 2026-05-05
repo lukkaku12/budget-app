@@ -2,23 +2,12 @@ import axios from "axios";
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import Cookies from "js-cookie";
-import { Badge, Button, Card, Spinner, Form, Container, Row, Col, Alert } from "react-bootstrap";
 
-interface Category {
-  id: string;
-  name: string;
-  user_id: string;
-}
+interface Category { id: string; name: string; user_id: string; }
+interface Budget { id: string; name: string; amount: number; start_date: string; end_date: string; status: string; category: Category; }
 
-interface Budget {
-  id: string;
-  name: string;
-  amount: number;
-  start_date: string;
-  end_date: string;
-  status: string;
-  category: Category;
-}
+const formatCurrency = (value: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+const formatDate = (value: string) => new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
@@ -29,25 +18,18 @@ const Budgets: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [monthFilter, setMonthFilter] = useState<number | "">("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-
   const navigate = useNavigate();
 
   const retrieveUserBudgets = async () => {
     const token = Cookies.get("token");
     try {
       setLoading(true);
-      const params: any = {};
+      setError(null);
+      const params: Record<string, string | number> = {};
       if (categoryFilter) params.category = categoryFilter;
       if (monthFilter !== "") params.month = monthFilter;
       if (statusFilter) params.status = statusFilter;
-
-      const response = await axios.get(
-        "https://raspy-jacquenette-testingbruhhh-6daeb85c.koyeb.app/api/v1/budgets",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params,
-        }
-      );
+      const response = await axios.get("https://raspy-jacquenette-testingbruhhh-6daeb85c.koyeb.app/api/v1/budgets", { headers: { Authorization: `Bearer ${token}` }, params });
       setBudgets(response.data);
       setError(null);
     } catch (err) {
@@ -57,92 +39,92 @@ const Budgets: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    retrieveUserBudgets();
-  }, [categoryFilter, monthFilter, statusFilter]);
+  useEffect(() => { retrieveUserBudgets(); }, [categoryFilter, monthFilter, statusFilter]);
 
-  const overview = useMemo(() => {
-    const totalBudget = budgets.reduce((sum, b) => sum + b.amount, 0);
-    const activeBudgets = budgets.filter((b) => b.status.toLowerCase() === "active").length;
-    const savingsTarget = totalBudget * 0.2;
-    return { totalBudget, activeBudgets, savingsTarget, categories: new Set(budgets.map((b) => b.category?.name)).size };
+  const totals = useMemo(() => {
+    const total = budgets.reduce((sum, budget) => sum + budget.amount, 0);
+    const active = budgets.filter((budget) => budget.status === "active").length;
+    const categories = new Set(budgets.map((budget) => budget.category?.name).filter(Boolean)).size;
+    return { total, active, categories };
   }, [budgets]);
 
-  const toneByStatus: Record<string, string> = {
-    active: "success",
-    pending: "warning",
-    completed: "secondary",
-  };
-
   if (loading) {
-    return (
-      <Container className="text-center py-5">
-        <Spinner animation="border" role="status" />
-        <p className="mt-3 text-secondary">Loading your budget dashboard...</p>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container className="text-center py-5">
-        <Alert variant="danger">{error}</Alert>
-        <Button variant="dark" onClick={() => navigate("/create-budget")}>Create Your First Budget</Button>
-      </Container>
-    );
+    return <div className="loading-state"><div><div className="spinner-dot" /><h2>Loading budgets</h2><p className="text-muted">Preparing your financial workspace...</p></div></div>;
   }
 
   return (
-    <Container fluid className="px-0">
-      <section className="glass-card p-4 p-md-5 mb-4">
-        <div className="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
-          <div>
-            <p className="text-uppercase text-secondary fw-semibold mb-2" style={{ letterSpacing: ".08em", fontSize: "0.75rem" }}>Overview</p>
-            <h1 className="h3 fw-bold mb-2">Financial Planning Hub</h1>
-            <p className="text-secondary mb-0">Track spending, optimize categories, and keep your goals on pace.</p>
-          </div>
-          <Button variant="dark" className="px-4" onClick={() => navigate("/create-budget")}>+ New Budget</Button>
+    <div>
+      <header className="topbar">
+        <div>
+          <h1>Budgets</h1>
+          <p>Your monthly plans, categories, and spending windows at a glance.</p>
         </div>
+        <button className="pp-btn pp-btn-primary" onClick={() => navigate("/create-budget")}>＋ Create budget</button>
+      </header>
 
-        <Row className="g-3">
-          <Col md={3} sm={6}><Card className="border-0 shadow-sm h-100"><Card.Body><small className="text-secondary">Total Planned</small><h4 className="fw-bold mt-2 mb-0">{currency.format(overview.totalBudget)}</h4></Card.Body></Card></Col>
-          <Col md={3} sm={6}><Card className="border-0 shadow-sm h-100"><Card.Body><small className="text-secondary">Active Budgets</small><h4 className="fw-bold mt-2 mb-0">{overview.activeBudgets}</h4></Card.Body></Card></Col>
-          <Col md={3} sm={6}><Card className="border-0 shadow-sm h-100"><Card.Body><small className="text-secondary">Categories</small><h4 className="fw-bold mt-2 mb-0">{overview.categories}</h4></Card.Body></Card></Col>
-          <Col md={3} sm={6}><Card className="border-0 shadow-sm h-100"><Card.Body><small className="text-secondary">Savings Goal (20%)</small><h4 className="fw-bold mt-2 mb-0">{currency.format(overview.savingsTarget)}</h4></Card.Body></Card></Col>
-        </Row>
+      <section className="dashboard-hero">
+        <div>
+          <span className="eyebrow">Workspace overview</span>
+          <h2>Plan every dollar with a clearer dashboard.</h2>
+          <p className="mb-0 text-white-50">Filter budgets by status, category, or month, then jump into transactions for deeper analysis.</p>
+        </div>
+        <div className="metric"><strong>{budgets.length}</strong><span>Total budgets</span></div>
       </section>
 
-      <Form className="glass-card p-3 p-md-4 mb-4">
-        <Row className="gy-3">
-          <Col md={4}><Form.Group controlId="categoryFilter"><Form.Label className="fw-semibold">Category</Form.Label><Form.Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}><option value="">All Categories</option><option value="Food">Food</option><option value="Travel">Travel</option><option value="Entertainment">Entertainment</option></Form.Select></Form.Group></Col>
-          <Col md={4}><Form.Group controlId="monthFilter"><Form.Label className="fw-semibold">Month</Form.Label><Form.Select value={monthFilter === "" ? "" : monthFilter} onChange={(e) => setMonthFilter(e.target.value === "" ? "" : Number(e.target.value))}><option value="">All Months</option>{Array.from({ length: 12 }, (_, i) => (<option key={i} value={i}>{new Date(0, i).toLocaleString("en", { month: "long" })}</option>))}</Form.Select></Form.Group></Col>
-          <Col md={4}><Form.Group controlId="statusFilter"><Form.Label className="fw-semibold">Status</Form.Label><Form.Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="">All Statuses</option><option value="pending">Pending</option><option value="active">Active</option><option value="completed">Completed</option></Form.Select></Form.Group></Col>
-        </Row>
-      </Form>
+      <section className="stat-grid" aria-label="Budget summary">
+        <div className="stat-card"><span>Planned amount</span><strong>{formatCurrency(totals.total)}</strong></div>
+        <div className="stat-card"><span>Active budgets</span><strong>{totals.active}</strong></div>
+        <div className="stat-card"><span>Categories</span><strong>{totals.categories}</strong></div>
+      </section>
 
-      <Row className="gy-4">
-        {budgets.map((budget) => (
-          <Col key={budget.id} xs={12} sm={6} lg={4}>
-            <Card className="border-0 shadow-sm h-100" onClick={() => navigate(`/budgets/${budget.id}`, { state: { budgetAmount: budget.amount } })} style={{ cursor: "pointer", transition: "all .18s ease" }}>
-              <Card.Body className="p-4">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h5 className="mb-0 fw-semibold">{budget.name}</h5>
-                  <Badge bg={toneByStatus[budget.status.toLowerCase()] || "primary"} className="pill-chip text-capitalize">{budget.status}</Badge>
-                </div>
-                <p className="h4 fw-bold mb-3">{currency.format(budget.amount)}</p>
-                <div className="d-flex flex-column gap-2 text-secondary small">
-                  <span>Start: {new Date(budget.start_date).toLocaleDateString()}</span>
-                  <span>End: {new Date(budget.end_date).toLocaleDateString()}</span>
-                </div>
-              </Card.Body>
-              <Card.Footer className="bg-white border-0 pt-0 px-4 pb-4">
-                <span className="pill-chip bg-light text-primary-emphasis">{budget.category.name}</span>
-              </Card.Footer>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-    </Container>
+      <section className="panel mb-4">
+        <div className="panel-header">
+          <h2 className="panel-title">Refine budget list</h2>
+          <button className="pp-btn pp-btn-ghost pp-btn-sm" onClick={retrieveUserBudgets}>Refresh</button>
+        </div>
+        <div className="filter-grid">
+          <div className="form-field mb-0">
+            <label htmlFor="categoryFilter">Category</label>
+            <select id="categoryFilter" className="pp-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+              <option value="">All Categories</option><option value="Food">Food</option><option value="Travel">Travel</option><option value="Entertainment">Entertainment</option>
+            </select>
+          </div>
+          <div className="form-field mb-0">
+            <label htmlFor="monthFilter">Month</label>
+            <select id="monthFilter" className="pp-select" value={monthFilter === "" ? "" : monthFilter} onChange={(e) => setMonthFilter(e.target.value === "" ? "" : Number(e.target.value))}>
+              <option value="">All Months</option>
+              {Array.from({ length: 12 }, (_, i) => <option key={i} value={i}>{new Date(0, i).toLocaleString("en", { month: "long" })}</option>)}
+            </select>
+          </div>
+          <div className="form-field mb-0">
+            <label htmlFor="statusFilter">Status</label>
+            <select id="statusFilter" className="pp-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All Statuses</option><option value="pending">Pending</option><option value="active">Active</option><option value="completed">Completed</option>
+            </select>
+          </div>
+          <button className="pp-btn pp-btn-secondary" onClick={retrieveUserBudgets}>Apply filters</button>
+        </div>
+      </section>
+
+      {error || budgets.length === 0 ? (
+        <section className="empty-state panel">
+          <div><span className="feature-icon mx-auto mb-3">＋</span><h2>No budgets to show</h2><p className="text-muted">Create your first polished budget workspace.</p><button className="pp-btn pp-btn-primary" onClick={() => navigate("/create-budget")}>Create New Budget</button></div>
+        </section>
+      ) : (
+        <section className="budget-grid">
+          {budgets.map((budget) => (
+            <article className="budget-card" key={budget.id} onClick={() => navigate(`/budgets/${budget.id}`, { state: { budgetAmount: budget.amount } })}>
+              <div>
+                <div className="budget-card-top"><span className={`status-pill ${budget.status}`}>{budget.status}</span><span className="category-chip">{budget.category.name}</span></div>
+                <h3>{budget.name}</h3>
+                <div className="budget-amount">{formatCurrency(budget.amount)}</div>
+              </div>
+              <div className="budget-meta"><span>Starts {formatDate(budget.start_date)}</span><span>Ends {formatDate(budget.end_date)}</span><strong>Open transaction detail →</strong></div>
+            </article>
+          ))}
+        </section>
+      )}
+    </div>
   );
 };
 

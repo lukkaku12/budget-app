@@ -1,11 +1,11 @@
-import axios from 'axios';
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import axios from "axios";
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
+import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
 const LoginForm = () => {
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const auth = useAuth();
@@ -20,7 +20,7 @@ const LoginForm = () => {
 
     try {
       const response = await axios.post(
-        'https://raspy-jacquenette-testingbruhhh-6daeb85c.koyeb.app/api/v1/auth/login',
+        "https://raspy-jacquenette-testingbruhhh-6daeb85c.koyeb.app/api/v1/auth/login",
         form
       );
 
@@ -29,132 +29,54 @@ const LoginForm = () => {
       ).toUTCString()}; secure; SameSite=Strict`;
 
       auth.setIsAuthenticated(true);
-      navigate('/home', { replace: true });
-    } catch (error: any) {
-      console.error('Login error:', error.response?.data || error.message);
-      setError(error.response?.data?.message || 'Login failed. Please try again.');
+      navigate("/home", { replace: true });
+    } catch (error) {
+      const message = axios.isAxiosError(error) ? error.response?.data?.message : undefined;
+      console.error("Login error:", error);
+      setError(message || "Login failed. Please try again.");
     }
   };
 
   return (
-    <div style={styles.container}>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <h2 style={styles.title}>Login</h2>
-
-        {error && <p style={styles.error}>{error}</p>}
-
-        <div style={styles.inputGroup}>
-          <label htmlFor="email" style={styles.label}>Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="Enter your email"
-            style={styles.input}
-            required
-          />
+    <main className="auth-shell">
+      <section className="auth-art">
+        <Link to="/welcome" className="brand-mark text-decoration-none text-white">
+          <span className="brand-orb" />
+          <span>Payout Pal</span>
+        </Link>
+        <div>
+          <span className="eyebrow">Secure budget access</span>
+          <h1>Welcome back to your money workspace.</h1>
+          <p>Pick up where you left off with a focused dashboard built for calm budget decisions.</p>
         </div>
-
-        <div style={styles.inputGroup}>
-          <label htmlFor="password" style={styles.label}>Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Enter your password"
-            style={styles.input}
-            required
-          />
+        <div className="auth-preview">
+          <strong>Today&apos;s flow</strong>
+          <div className="auth-preview-row"><span>Review budgets</span><strong>2 min</strong></div>
+          <div className="auth-preview-row"><span>Add transaction</span><strong>Fast</strong></div>
         </div>
+      </section>
 
-        <button type="submit" style={styles.button}>
-          Login
-        </button>
+      <section className="auth-panel-wrap">
+        <form className="auth-card" onSubmit={handleSubmit}>
+          <span className="pill">Sign in</span>
+          <h2>Access your dashboard</h2>
+          <p className="auth-subtitle">Enter your credentials to return to Payout Pal.</p>
+          {error && <div className="alert-soft">{error}</div>}
 
-        <div style={styles.linkContainer}>
-          <p>
-            Don't have an account?{' '}
-            <Link to="/register" style={styles.link}>Register</Link>
-          </p>
-        </div>
-      </form>
-    </div>
+          <div className="form-field">
+            <label htmlFor="email">Email address</label>
+            <input className="pp-input" type="email" id="email" name="email" value={form.email} onChange={handleChange} placeholder="you@example.com" required />
+          </div>
+          <div className="form-field">
+            <label htmlFor="password">Password</label>
+            <input className="pp-input" type="password" id="password" name="password" value={form.password} onChange={handleChange} placeholder="••••••••" required />
+          </div>
+          <button type="submit" className="pp-btn pp-btn-primary pp-btn-wide">Sign in to workspace</button>
+          <p className="auth-switch">New here? <Link to="/register">Create an account</Link></p>
+        </form>
+      </section>
+    </main>
   );
-};
-
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    backgroundColor: '#f7f9fc',
-    padding: '20px',
-  },
-  form: {
-    backgroundColor: '#ffffff',
-    padding: '30px',
-    borderRadius: '8px',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    width: '100%',
-    maxWidth: '400px',
-    display: 'flex',
-    flexDirection: 'column' as const,
-  },
-  title: {
-    marginBottom: '20px',
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center' as const,
-  },
-  inputGroup: {
-    marginBottom: '20px',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '8px',
-    fontSize: '14px',
-    color: '#555',
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    fontSize: '16px',
-    borderRadius: '5px',
-    border: '1px solid #ccc',
-    transition: 'border-color 0.3s, box-shadow 0.3s',
-    outline: 'none',
-  },
-  button: {
-    width: '100%',
-    padding: '10px',
-    borderRadius: '5px',
-    border: 'none',
-    backgroundColor: '#007BFF',
-    color: '#fff',
-    fontSize: '16px',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s',
-  },
-  error: {
-    color: 'red',
-    fontSize: '14px',
-    marginBottom: '10px',
-    textAlign: 'center' as const,
-  },
-  linkContainer: {
-    marginTop: '20px',
-    textAlign: 'center' as const,
-  },
-  link: {
-    color: '#007BFF',
-    textDecoration: 'none',
-  },
 };
 
 export default LoginForm;

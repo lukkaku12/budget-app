@@ -67,7 +67,7 @@ button, input, select, textarea { font: inherit; }
 .product-card { background: linear-gradient(145deg, rgba(255,255,255,.96), rgba(237,245,255,.86)); color: var(--ink); border-radius: 38px; padding: 1.2rem; box-shadow: 0 34px 90px rgba(0,0,0,.35); transform: rotate(1deg); }
 .product-card-inner { border-radius: 28px; background: #fff; padding: 1.25rem; border: 1px solid rgba(15,23,42,.08); }
 .card-topline { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.pill { border-radius: 999px; padding: .42rem .7rem; background: rgba(14,165,164,.12); color: #04706f; font-size: .78rem; font-weight: 800; }
+.pill { border-radius: 999px; padding: .42rem .7rem; background: rgba(14, 182, 182, 0.12); color: #0a9290; font-size: .78rem; font-weight: 800; }
 .balance-number { font-size: 3.2rem; letter-spacing: -.07em; font-weight: 900; margin: .2rem 0; }
 .chart-bars { display: grid; grid-template-columns: repeat(8, 1fr); gap: .55rem; align-items: end; height: 170px; margin: 1.4rem 0; }
 .chart-bars span { border-radius: 999px 999px 8px 8px; background: linear-gradient(180deg, #91f4d3, #4361ee); min-height: 26px; }

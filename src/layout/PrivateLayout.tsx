@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router";
 import { useAuth } from "../context/AuthContext";
-import { Container, Row, Col, Navbar, Nav } from "react-bootstrap";
+import { Container, Navbar, Nav } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
 const PrivateLayout = () => {
@@ -11,38 +11,31 @@ const PrivateLayout = () => {
   }
 
   return (
-    <div className="layout d-flex flex-column min-vh-100">
-      {/* Header */}
-      <Navbar bg="success" variant="dark" expand="lg" className="mb-4">
-        <Container>
-          <Navbar.Brand as={Link} to="/home">Payout Pal</Navbar.Brand>
+    <div className="app-shell d-flex flex-column min-vh-100">
+      <Navbar expand="lg" className="premium-navbar">
+        <Container className="premium-container">
+          <Navbar.Brand as={Link} to="/home" className="text-white">
+            Payout Pal
+          </Navbar.Brand>
           <Nav className="ms-auto">
-            <Nav.Link as={Link} to="/profile">Profile</Nav.Link>
+            <Nav.Link as={Link} to="/profile" className="text-white-50">
+              Profile
+            </Nav.Link>
           </Nav>
         </Container>
       </Navbar>
 
-      {/* Main Content */}
-      <div className="flex-grow-1">
-        <Container>
-          <Row>
-            <Col xs={12} md={8} className="mx-auto">
-              <div className="content">
-                <Outlet />
-              </div>
-            </Col>
-          </Row>
+      <main className="premium-page flex-grow-1">
+        <Container className="premium-container">
+          <Outlet />
         </Container>
-      </div>
+      </main>
 
-      {/* Footer */}
-      <Navbar bg="dark" variant="dark" className="mt-4">
-        <Container>
-          <Navbar.Text className="text-center text-white">
-            &copy; All rights reserved. 2024
-          </Navbar.Text>
+      <footer className="py-3 border-top border-secondary-subtle bg-white">
+        <Container className="premium-container text-secondary small">
+          © {new Date().getFullYear()} Payout Pal. Crafted for better budgeting.
         </Container>
-      </Navbar>
+      </footer>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { router } from "./navigation/router";
 import { useAuth } from "./context/AuthContext";
 import Cookies from "js-cookie";
 import { useEffect } from "react";
+import "./index.css";
 
 function App() {
   const auth = useAuth();
